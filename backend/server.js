@@ -74,6 +74,6 @@ pool.query("SELECT NOW()", (err, result) => {
 
 const PORT = 5000;
 
-app.listen(PORT, () => {
-    console.log(`RideFlow Backend is Running on http://localhost:${PORT}`)
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`RideFlow Backend is Running on port ${PORT}`);
 });

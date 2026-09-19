@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Pressable,Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {useState} from 'react';
 
@@ -10,7 +10,7 @@ export default function RegisterScreen() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
       if(name.trim() === ''){
         setError("name is required");
         return;
@@ -38,7 +38,53 @@ export default function RegisterScreen() {
         setError("Password do not match");
         return;
       }
-      console.log("Registration data is valid");
+      try {
+  const response = await fetch(
+    "http://192.168.29.181:5000/api/auth/register",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: name.trim(),
+        mobile: mobile.trim(),
+        password: password,
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    setError(data.message || "Registration failed");
+    return;
+  }
+
+  Alert.alert(
+  "Registration Successful",
+  "Your RideFlow account has been created.",
+  [
+    {
+      text: "OK",
+      onPress: () => {
+        setName("");
+        setMobile("");
+        setPassword("");
+        setConfirmPassword("");
+        setError("");
+      },
+    },
+  ]
+);
+
+  console.log("Registered user:", data.user);
+
+} catch (error) {
+  console.error("Registration error:", error);
+  setError("Unable to connect to server");
+}
+      // console.log("Registration data is valid");
     };
 
 
