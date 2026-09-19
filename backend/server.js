@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const pool = require("./db");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -63,6 +64,71 @@ app.post("/api/auth/register", async (req, res) => {
     });
   }
 });
+
+app.post("/api/auth/login", async (req, res) => {
+  const { mobile, password } = req.body;
+
+  if (!mobile || !password) {
+    return res.status(400).json({
+      message: "Mobile and password are required",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT id, name, mobile, password FROM users WHERE mobile = $1",
+      [mobile.trim()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        message: "Invalid mobile number or password",
+      });
+    }
+
+    const user = result.rows[0];
+
+    const passwordMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        message: "Invalid mobile number or password",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        mobile: user.mobile,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token: token,
+      user: {
+        id: user.id,
+        name: user.name,
+        mobile: user.mobile,
+      },
+    });
+
+  } catch (error) {
+    console.error("Login error:", error.message);
+
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
 pool.query("SELECT NOW()", (err, result) => {
   if (err) {
     console.error("Database connection failed:", err.message);
