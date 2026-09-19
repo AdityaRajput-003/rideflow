@@ -8,6 +8,40 @@ export default function RegisterScreen() {
     const [mobile, setMobile] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleRegister = () => {
+      if(name.trim() === ''){
+        setError("name is required");
+        return;
+      }
+      if (mobile.trim() === '') {
+        setError("Mobile number is required");
+        return;
+}
+
+
+
+      if (!/^[6-9]\d{9}$/.test(mobile.trim())) {
+        setError("Enter a valid 10-digit mobile number");
+        return;
+}
+      if(password.trim() === ''){
+        setError("Password is required");
+        return;
+      }
+      if(password.length < 6 ){
+        setError("Password must be at least of 6 characters");
+        return;
+      }
+      if(password !== confirmPassword){
+        setError("Password do not match");
+        return;
+      }
+      console.log("Registration data is valid");
+    };
+
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -17,43 +51,56 @@ export default function RegisterScreen() {
           Register with RideFlow to book your rides.
         </Text>
 
+        {error !== '' && (
+          <Text style={styles.error}>
+            {error}
+  </Text>
+)}
+
         <TextInput
              style={styles.input}
             placeholder="Enter your name"
              value={name}
-            onChangeText={setName}
+             onChangeText={(text) => {
+                setName(text);
+                setError('');
+  }}
 />
         <TextInput
             style={styles.input}
             placeholder="Enter your mobile number"
             value={mobile}
-            onChangeText={setMobile}
+            onChangeText={(text) => {
+              setMobile(text);
+              setError('');
+            }}
             keyboardType="phone-pad"
 />
         <TextInput
             style={styles.input}
             placeholder="Enter your password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              setError('');
+            }}
             secureTextEntry
 />
         <TextInput
             style={styles.input}
             placeholder="Confirm your password"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              setError('');
+            }}
             secureTextEntry
 />
         <Pressable
-            style={styles.button}
-            onPress={() => {
-            console.log(name);
-            console.log(mobile);
-            console.log(password);
-            console.log(confirmPassword);
-  }}
+          style={styles.button}
+          onPress={handleRegister}
 >
-  <Text style={styles.buttonText}>Register</Text>
+      <Text style={styles.buttonText}>Register</Text>
 </Pressable>
       </View>
     </SafeAreaView>
@@ -106,6 +153,12 @@ buttonText: {
   color: '#ffffff',
   fontSize: 16,
   fontWeight: '600',
+},
+
+error: {
+  color: 'red',
+  fontSize: 14,
+  marginTop: 12,
 },
   
   
