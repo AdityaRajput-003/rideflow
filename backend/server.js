@@ -33,19 +33,35 @@ app.post("/api/auth/register", async (req, res) => {
     });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const result = await pool.query(
-    `INSERT INTO users (name, mobile, password)
-     VALUES ($1, $2, $3)
-     RETURNING id, name, mobile, created_at`,
-    [name.trim(), mobile.trim(), hashedPassword]
-  );
+    const result = await pool.query(
+      `INSERT INTO users (name, mobile, password)
+       VALUES ($1, $2, $3)
+       RETURNING id, name, mobile, created_at`,
+      [name.trim(), mobile.trim(), hashedPassword]
+    );
 
-  res.status(201).json({
-    message: "Registration successful",
-    user: result.rows[0],
-  });
+    res.status(201).json({
+      message: "Registration successful",
+      user: result.rows[0],
+    });
+
+  } catch (error) {
+
+    if (error.code === "23505") {
+      return res.status(409).json({
+        message: "Mobile number already registered",
+      });
+    }
+
+    console.error("Registration error:", error.message);
+
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
 });
 pool.query("SELECT NOW()", (err, result) => {
   if (err) {
