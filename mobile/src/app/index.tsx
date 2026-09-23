@@ -29,12 +29,14 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
 
-          <Pressable style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>
-              Log In
-            </Text>
-          </Pressable>
-
+          <Pressable
+              style={styles.secondaryButton}
+              onPress={() => router.push('/login')}
+>
+          <Text style={styles.secondaryButtonText}>
+            Log In
+    </Text>
+    </Pressable>
         </View>
 
       </View>
