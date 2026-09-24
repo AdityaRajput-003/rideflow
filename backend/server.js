@@ -3,6 +3,7 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const pool = require("./db");
 const jwt = require("jsonwebtoken");
+const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
 
@@ -122,6 +123,57 @@ app.post("/api/auth/login", async (req, res) => {
 
   } catch (error) {
     console.error("Login error:", error.message);
+
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
+app.post("/api/rides", authMiddleware, async (req, res) => {
+  const {
+    pickup,
+    destination,
+    rideType,
+    estimatedDistance,
+    estimatedFare,
+  } = req.body;
+
+  if (
+    !pickup ||
+    !destination ||
+    !rideType ||
+    estimatedDistance === undefined ||
+    estimatedFare === undefined
+  ) {
+    return res.status(400).json({
+      message: "All ride details are required",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO rides
+       (passenger_id, pickup, destination, ride_type, estimated_distance, estimated_fare)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        req.user.userId,
+        pickup.trim(),
+        destination.trim(),
+        rideType,
+        estimatedDistance,
+        estimatedFare,
+      ]
+    );
+
+    res.status(201).json({
+      message: "Ride requested successfully",
+      ride: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error("Ride request error:", error.message);
 
     res.status(500).json({
       message: "Something went wrong",

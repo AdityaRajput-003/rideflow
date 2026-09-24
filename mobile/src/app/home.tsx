@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { useState } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -16,6 +17,7 @@ export default function HomeScreen() {
     const [fare, setFare] = useState<number | null>(null);
     const [distance, setDistance] = useState<number | null>(null);
     const [selectedRide, setSelectedRide] = useState('');
+    const [rideCreated, setRideCreated] = useState(false);
 
     const handleFindRide = () => {
   if (pickup.trim() === '') {
@@ -43,6 +45,57 @@ export default function HomeScreen() {
   console.log('Estimated distance:', estimatedDistance, 'km');
   console.log('Estimated fare: ₹', estimatedFare);
 };
+
+const handleConfirmRide = async () => {
+  if (selectedRide === '') {
+    return;
+  }
+
+  const token = await SecureStore.getItemAsync('authToken');
+
+  if (!token) {
+    console.log('No authentication token found');
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      'http://192.168.29.181:5000/api/rides',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          pickup: pickup,
+          destination: destination,
+          rideType: selectedRide,
+          estimatedDistance: distance,
+          estimatedFare:
+            selectedRide === 'go'
+              ? fare
+              : selectedRide === 'comfort'
+              ? fare! + 50
+              : fare! + 100,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.log('Ride request failed:', data.message);
+      return;
+    }
+
+   console.log('Ride created:', data.ride);
+   setRideCreated(true);
+  } catch (error) {
+    console.error('Ride request error:', error);
+  }
+};
+
   return (
     <SafeAreaView style={styles.container}>
     <ScrollView contentContainerStyle={styles.content}>
@@ -181,17 +234,31 @@ export default function HomeScreen() {
       </Text>
     </Pressable>
 
-    {selectedRide !== '' && (
+   {selectedRide !== '' && (
   <Pressable
     style={styles.confirmButton}
-    onPress={() => {
-      console.log('Selected ride:', selectedRide);
-    }}
+    onPress={handleConfirmRide}
   >
     <Text style={styles.confirmButtonText}>
       Confirm Ride
     </Text>
   </Pressable>
+)}
+
+{rideCreated && (
+  <View style={styles.successBox}>
+    <Text style={styles.successTitle}>
+      🎉 Ride Requested!
+    </Text>
+
+    <Text style={styles.successText}>
+      Your ride request has been created successfully.
+    </Text>
+
+    <Text style={styles.successText}>
+      {pickup} → {destination}
+    </Text>
+  </View>
 )}
 
   </View>
@@ -382,4 +449,26 @@ confirmButtonText: {
   fontSize: 16,
   fontWeight: '600',
 },
+
+successBox: {
+  marginTop: 16,
+  padding: 16,
+  borderRadius: 10,
+  backgroundColor: '#f0fdf4',
+  borderWidth: 1,
+  borderColor: '#bbf7d0',
+},
+
+successTitle: {
+  fontSize: 18,
+  fontWeight: '700',
+  marginBottom: 6,
+},
+
+successText: {
+  fontSize: 14,
+  color: '#555555',
+  marginTop: 4,
+},
+
 });
