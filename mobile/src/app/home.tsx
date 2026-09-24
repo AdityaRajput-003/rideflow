@@ -1,10 +1,51 @@
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Pressable,
+  ScrollView,
+} from 'react-native';
+
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+    const [pickup, setPickup] = useState('');
+    const [destination, setDestination] = useState('');
+    const [fare, setFare] = useState<number | null>(null);
+    const [distance, setDistance] = useState<number | null>(null);
+    const [selectedRide, setSelectedRide] = useState('');
+
+    const handleFindRide = () => {
+  if (pickup.trim() === '') {
+    console.log('Please enter pickup location');
+    return;
+  }
+
+  if (destination.trim() === '') {
+    console.log('Please enter destination');
+    return;
+  }
+
+  const estimatedDistance = 5;
+  const baseFare = 50;
+  const perKmRate = 12;
+
+  const estimatedFare =
+    baseFare + estimatedDistance * perKmRate;
+
+  setDistance(estimatedDistance);
+  setFare(estimatedFare);
+
+  console.log('Pickup:', pickup);
+  console.log('Destination:', destination);
+  console.log('Estimated distance:', estimatedDistance, 'km');
+  console.log('Estimated fare: ₹', estimatedFare);
+};
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+    <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.logo}>🚗 RideFlow</Text>
 
         <Text style={styles.title}>
@@ -12,9 +53,164 @@ export default function HomeScreen() {
         </Text>
 
         <Text style={styles.subtitle}>
-          Book a ride and get to your destination with ease.
+          Enter your pickup and destination to find a ride.
+        </Text>
+
+        <View style={styles.form}>
+
+          <View style={styles.locationBox}>
+            <Text style={styles.locationLabel}>📍 Pickup</Text>
+
+            <TextInput
+                style={styles.input}
+                placeholder="Enter pickup location"
+                value={pickup}
+                onChangeText={setPickup}
+/>
+          </View>
+
+          <View style={styles.locationBox}>
+            <Text style={styles.locationLabel}>📍 Destination</Text>
+
+            <TextInput
+                style={styles.input}
+                placeholder="Where to?"
+                value={destination}
+                onChangeText={setDestination}
+/>
+          </View>
+
+          <Pressable
+            style={styles.button}
+            onPress={handleFindRide}
+>
+            <Text style={styles.buttonText}>
+              Find a Ride
+            </Text>
+          </Pressable>
+
+          {/* {fare !== null && ( */}
+  {fare !== null && (
+  <View style={styles.rideSection}>
+
+     <Text style={styles.fareDistance}>
+      Estimated distance: {distance} km
+    </Text>
+
+    <Text style={styles.sectionTitle}>
+      Choose your ride
+    </Text>
+
+    <Pressable
+      style={[
+        styles.rideCard,
+        selectedRide === 'go' && styles.selectedRide,
+      ]}
+      onPress={() => setSelectedRide('go')}
+    >
+      <View>
+        <Text style={styles.rideName}>
+          🚗 RideFlow Go
+        </Text>
+
+        <Text style={styles.rideDescription}>
+          Affordable everyday rides
+        </Text>
+
+        <Text style={styles.rideTime}>
+          5 min away
         </Text>
       </View>
+
+      <Text style={styles.ridePrice}>
+        ₹{fare}
+      </Text>
+    </Pressable>
+
+
+    <Pressable
+      style={[
+        styles.rideCard,
+        selectedRide === 'comfort' && styles.selectedRide,
+      ]}
+      onPress={() => setSelectedRide('comfort')}
+    >
+      <View>
+        <Text style={styles.rideName}>
+          🚙 RideFlow Comfort
+        </Text>
+
+        <Text style={styles.rideDescription}>
+          More comfortable ride
+        </Text>
+
+        <Text style={styles.rideTime}>
+          7 min away
+        </Text>
+      </View>
+
+      <Text style={styles.ridePrice}>
+        ₹{fare + 50}
+      </Text>
+    </Pressable>
+
+
+    <Pressable
+      style={[
+        styles.rideCard,
+        selectedRide === 'xl' && styles.selectedRide,
+      ]}
+      onPress={() => setSelectedRide('xl')}
+    >
+      <View>
+        <Text style={styles.rideName}>
+          🚘 RideFlow XL
+        </Text>
+
+        <Text style={styles.rideDescription}>
+          More space for groups
+        </Text>
+
+        <Text style={styles.rideTime}>
+          8 min away
+        </Text>
+      </View>
+
+      <Text style={styles.ridePrice}>
+        ₹{fare + 100}
+      </Text>
+    </Pressable>
+
+    {selectedRide !== '' && (
+  <Pressable
+    style={styles.confirmButton}
+    onPress={() => {
+      console.log('Selected ride:', selectedRide);
+    }}
+  >
+    <Text style={styles.confirmButtonText}>
+      Confirm Ride
+    </Text>
+  </Pressable>
+)}
+
+  </View>
+)}
+
+
+        </View>
+
+        <View style={styles.recentSection}>
+          <Text style={styles.recentTitle}>
+            Recent rides
+          </Text>
+
+          <Text style={styles.emptyText}>
+            Your recent rides will appear here.
+          </Text>
+        </View>
+
+       </ScrollView>
     </SafeAreaView>
   );
 }
@@ -26,26 +222,164 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 50,
-  },
+    paddingTop: 30,
+    paddingBottom: 40,
+},
 
   logo: {
     fontSize: 26,
     fontWeight: '700',
-    marginBottom: 60,
+    marginBottom: 45,
   },
 
   title: {
     fontSize: 32,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 10,
   },
 
   subtitle: {
-    fontSize: 17,
-    lineHeight: 26,
+    fontSize: 16,
+    lineHeight: 24,
     color: '#666666',
+    marginBottom: 30,
   },
+
+  form: {
+    gap: 16,
+  },
+
+  locationBox: {
+    borderWidth: 1,
+    borderColor: '#dddddd',
+    borderRadius: 12,
+    padding: 14,
+  },
+
+  locationLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+
+  input: {
+    fontSize: 16,
+    paddingVertical: 8,
+  },
+
+  button: {
+    backgroundColor: '#111111',
+    paddingVertical: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 5,
+  },
+
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  recentSection: {
+    marginTop: 45,
+  },
+
+  recentTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+
+  emptyText: {
+    fontSize: 15,
+    color: '#777777',
+  },
+  fareBox: {
+  marginTop: 24,
+  padding: 20,
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: '#dddddd',
+},
+
+fareTitle: {
+  fontSize: 16,
+  color: '#666666',
+  marginBottom: 8,
+},
+
+fareAmount: {
+  fontSize: 30,
+  fontWeight: '700',
+},
+
+fareDistance: {
+  fontSize: 14,
+  color: '#777777',
+  marginTop: 6,
+},
+
+rideSection: {
+  marginTop: 30,
+},
+
+sectionTitle: {
+  fontSize: 20,
+  fontWeight: '700',
+  marginBottom: 14,
+},
+
+rideCard: {
+  borderWidth: 1,
+  borderColor: '#dddddd',
+  borderRadius: 12,
+  padding: 16,
+  marginBottom: 12,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
+
+selectedRide: {
+  borderColor: '#111111',
+  borderWidth: 2,
+},
+
+rideName: {
+  fontSize: 17,
+  fontWeight: '600',
+  marginBottom: 5,
+},
+
+rideDescription: {
+  fontSize: 14,
+  color: '#666666',
+  marginBottom: 5,
+},
+
+rideTime: {
+  fontSize: 13,
+  color: '#888888',
+},
+
+ridePrice: {
+  fontSize: 18,
+  fontWeight: '700',
+},
+
+confirmButton: {
+  backgroundColor: '#111111',
+  paddingVertical: 16,
+  borderRadius: 10,
+  alignItems: 'center',
+  marginTop: 8,
+},
+
+confirmButtonText: {
+  color: '#ffffff',
+  fontSize: 16,
+  fontWeight: '600',
+},
 });
