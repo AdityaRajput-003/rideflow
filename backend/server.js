@@ -181,6 +181,37 @@ app.post("/api/rides", authMiddleware, async (req, res) => {
   }
 });
 
+app.get("/api/rides", authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+        id,
+        pickup,
+        destination,
+        ride_type,
+        estimated_distance,
+        estimated_fare,
+        status,
+        created_at
+       FROM rides
+       WHERE passenger_id = $1
+       ORDER BY created_at DESC`,
+      [req.user.userId]
+    );
+
+    res.status(200).json({
+      rides: result.rows,
+    });
+
+  } catch (error) {
+    console.error("Fetch rides error:", error.message);
+
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
 pool.query("SELECT NOW()", (err, result) => {
   if (err) {
     console.error("Database connection failed:", err.message);

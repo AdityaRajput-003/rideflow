@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 
-import { useState } from 'react';
+import {useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,6 +18,7 @@ export default function HomeScreen() {
     const [distance, setDistance] = useState<number | null>(null);
     const [selectedRide, setSelectedRide] = useState('');
     const [rideCreated, setRideCreated] = useState(false);
+    const [recentRides, setRecentRides] = useState<any[]>([]);
 
     const handleFindRide = () => {
   if (pickup.trim() === '') {
@@ -95,6 +96,43 @@ const handleConfirmRide = async () => {
     console.error('Ride request error:', error);
   }
 };
+
+useEffect(() => {
+  const fetchRecentRides = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('authToken');
+
+      if (!token) {
+        console.log('No authentication token found');
+        return;
+      }
+
+      const response = await fetch(
+        'http://192.168.29.181:5000/api/rides',
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.log('Failed to fetch rides:', data.message);
+        return;
+      }
+
+      setRecentRides(data.rides);
+
+    } catch (error) {
+      console.error('Fetch rides error:', error);
+    }
+  };
+
+  fetchRecentRides();
+}, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -267,16 +305,50 @@ const handleConfirmRide = async () => {
 
         </View>
 
-        <View style={styles.recentSection}>
-          <Text style={styles.recentTitle}>
-            Recent rides
+        <Text style={styles.sectionTitle}>
+  Recent Rides
+</Text>
+
+{recentRides.length === 0 ? (
+  <Text style={styles.emptyText}>
+    No recent rides yet.
+  </Text>
+) : (
+  <>
+    {recentRides.slice(0, 2).map((ride) => (
+      <View key={ride.id} style={styles.recentRideCard}>
+
+        <View style={styles.recentRideInfo}>
+          <Text style={styles.recentRideRoute}>
+            {ride.pickup} → {ride.destination}
           </Text>
 
-          <Text style={styles.emptyText}>
-            Your recent rides will appear here.
+          <Text style={styles.recentRideDetails}>
+            {ride.status}
           </Text>
         </View>
 
+        <Text style={styles.recentRidePrice}>
+          ₹{ride.estimated_fare}
+        </Text>
+
+      </View>
+    ))}
+
+    {recentRides.length > 2 && (
+      <Pressable
+        style={styles.viewAllButton}
+        onPress={() => {
+          console.log('View all rides');
+        }}
+      >
+        <Text style={styles.viewAllText}>
+          View all →
+        </Text>
+      </Pressable>
+    )}
+  </>
+)}
        </ScrollView>
     </SafeAreaView>
   );
@@ -359,10 +431,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  emptyText: {
-    fontSize: 15,
-    color: '#777777',
-  },
+ emptyText: {
+  fontSize: 14,
+  color: '#777777',
+},
   fareBox: {
   marginTop: 24,
   padding: 20,
@@ -470,5 +542,46 @@ successText: {
   color: '#555555',
   marginTop: 4,
 },
+
+recentRideCard: {
+  backgroundColor: '#f8f8f8',
+  padding: 16,
+  borderRadius: 10,
+  marginBottom: 10,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
+
+recentRideInfo: {
+  flex: 1,
+},
+
+recentRideRoute: {
+  fontSize: 15,
+  fontWeight: '600',
+  marginBottom: 5,
+},
+
+recentRideDetails: {
+  fontSize: 13,
+  color: '#666666',
+},
+
+recentRidePrice: {
+  fontSize: 15,
+  fontWeight: '700',
+},
+
+viewAllButton: {
+  alignItems: 'center',
+  paddingVertical: 10,
+},
+
+viewAllText: {
+  fontSize: 14,
+  fontWeight: '600',
+},
+
 
 });
