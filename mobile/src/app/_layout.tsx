@@ -21,6 +21,13 @@ export default function RootLayout() {
         name="explore"
         options={{ title: 'Explore' }}
       />
+
+      <Stack.Screen
+  name="rides"
+  options={{ title: 'Ride History' }}
+/>
     </Stack>
+
+    
   );
 }

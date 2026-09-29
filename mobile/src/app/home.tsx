@@ -10,6 +10,7 @@ import {
 import {useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
     const [pickup, setPickup] = useState('');
@@ -19,6 +20,8 @@ export default function HomeScreen() {
     const [selectedRide, setSelectedRide] = useState('');
     const [rideCreated, setRideCreated] = useState(false);
     const [recentRides, setRecentRides] = useState<any[]>([]);
+
+    const router = useRouter();
 
     const handleFindRide = () => {
   if (pickup.trim() === '') {
@@ -337,15 +340,13 @@ useEffect(() => {
 
     {recentRides.length > 2 && (
       <Pressable
-        style={styles.viewAllButton}
-        onPress={() => {
-          console.log('View all rides');
-        }}
-      >
-        <Text style={styles.viewAllText}>
-          View all →
-        </Text>
-      </Pressable>
+  style={styles.viewAllButton}
+  onPress={() => router.push('/rides')}
+>
+  <Text style={styles.viewAllText}>
+    View all →
+  </Text>
+</Pressable>
     )}
   </>
 )}
