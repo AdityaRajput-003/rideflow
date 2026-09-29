@@ -212,6 +212,45 @@ app.get("/api/rides", authMiddleware, async (req, res) => {
   }
 });
 
+app.get("/api/rides/:id", authMiddleware, async (req, res) => {
+  const rideId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      `SELECT
+        id,
+        pickup,
+        destination,
+        ride_type,
+        estimated_distance,
+        estimated_fare,
+        status,
+        created_at
+       FROM rides
+       WHERE id = $1
+       AND passenger_id = $2`,
+      [rideId, req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "Ride not found",
+      });
+    }
+
+    res.status(200).json({
+      ride: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error("Fetch ride error:", error.message);
+
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
 pool.query("SELECT NOW()", (err, result) => {
   if (err) {
     console.error("Database connection failed:", err.message);

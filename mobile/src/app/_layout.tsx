@@ -26,6 +26,11 @@ export default function RootLayout() {
   name="rides"
   options={{ title: 'Ride History' }}
 />
+
+<Stack.Screen
+  name="active-ride"
+  options={{ title: 'Your Ride' }}
+/>
     </Stack>
 
     

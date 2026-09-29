@@ -94,7 +94,14 @@ const handleConfirmRide = async () => {
     }
 
    console.log('Ride created:', data.ride);
-   setRideCreated(true);
+
+router.push({
+  pathname: '/active-ride',
+  params: {
+    rideId: data.ride.id.toString(),
+  },
+});
+
   } catch (error) {
     console.error('Ride request error:', error);
   }
