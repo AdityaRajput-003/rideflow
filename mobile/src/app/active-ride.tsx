@@ -3,6 +3,7 @@ import {
   Text,
   View,
   ScrollView,
+  Pressable,
 } from 'react-native';
 
 import { useEffect, useState } from 'react';
@@ -56,6 +57,43 @@ export default function ActiveRideScreen() {
     fetchRide();
   }
 }, [rideId]);
+
+const handleCancelRide = async () => {
+  if (!ride) {
+    return;
+  }
+
+  try {
+    const token = await SecureStore.getItemAsync('authToken');
+
+    if (!token) {
+      console.log('No authentication token found');
+      return;
+    }
+
+    const response = await fetch(
+      `http://192.168.29.181:5000/api/rides/${ride.id}/cancel`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.log('Cancel ride failed:', data.message);
+      return;
+    }
+
+    setRide(data.ride);
+
+  } catch (error) {
+    console.error('Cancel ride error:', error);
+  }
+};
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -136,6 +174,17 @@ export default function ActiveRideScreen() {
   </>
 )}
 
+{ride && ride.status === 'REQUESTED' && (
+  <Pressable
+    style={styles.cancelButton}
+    onPress={handleCancelRide}
+  >
+    <Text style={styles.cancelButtonText}>
+      Cancel Ride
+    </Text>
+  </Pressable>
+)}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -212,6 +261,20 @@ status: {
 fare: {
   fontSize: 20,
   fontWeight: '700',
+},
+
+cancelButton: {
+  marginTop: 10,
+  paddingVertical: 15,
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: '#dddddd',
+  alignItems: 'center',
+},
+
+cancelButtonText: {
+  fontSize: 15,
+  fontWeight: '600',
 },
 
 });

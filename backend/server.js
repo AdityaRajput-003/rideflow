@@ -251,6 +251,40 @@ app.get("/api/rides/:id", authMiddleware, async (req, res) => {
   }
 });
 
+app.patch("/api/rides/:id/cancel", authMiddleware, async (req, res) => {
+  const rideId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      `UPDATE rides
+       SET status = 'CANCELLED'
+       WHERE id = $1
+       AND passenger_id = $2
+       AND status = 'REQUESTED'
+       RETURNING *`,
+      [rideId, req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        message: "Ride cannot be cancelled",
+      });
+    }
+
+    res.status(200).json({
+      message: "Ride cancelled successfully",
+      ride: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error("Cancel ride error:", error.message);
+
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
 pool.query("SELECT NOW()", (err, result) => {
   if (err) {
     console.error("Database connection failed:", err.message);
